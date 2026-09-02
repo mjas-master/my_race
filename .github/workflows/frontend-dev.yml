@@ -10,18 +10,16 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # my_race.apk 커밋용
+  contents: read
 
 concurrency:
   group: deploy-frontend-develop
   cancel-in-progress: false
 
 env:
-  DEPLOY_DIR: /home/ubuntu/my_race
+  DEPLOY_DIR: /opt/my_race
   # 웹은 Caddy 가 /v1/* 을 백엔드로 프록시하므로 같은 출처(빈값=상대경로). 다른 서버라면 vars.WEB_API_BASE_URL 지정
   WEB_API_BASE_URL: ${{ vars.WEB_API_BASE_URL || '' }}
-  # APK 가 붙을 백엔드 주소 (예: http://서버IP:3000 — Caddy 를 통해 /v1 프록시)
-  APK_API_BASE_URL: ${{ vars.APK_API_BASE_URL || 'http://localhost:8080' }}
 
 jobs:
   check:
@@ -91,45 +89,3 @@ jobs:
             docker compose up -d frontend
             docker compose exec -T frontend caddy validate --config /etc/caddy/Caddyfile
             docker compose exec -T frontend caddy reload --config /etc/caddy/Caddyfile
-
-  build-apk:
-    needs: check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Build APK
-        working-directory: frontend
-        run: |
-          flutter pub get
-          [ -d android ] || flutter create . --platforms=android --org com.myrace
-          flutter build apk --release --dart-define=API_BASE_URL="${APK_API_BASE_URL}"
-
-      - name: Copy to repo root as my_race.apk
-        run: cp frontend/build/app/outputs/flutter-apk/app-release.apk my_race.apk
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: my_race-apk
-          path: my_race.apk
-
-      - name: Commit my_race.apk
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f my_race.apk
-          if git diff --cached --quiet; then echo "APK unchanged"; exit 0; fi
-          git commit -m "chore(apk): my_race.apk from ${GITHUB_SHA::7} [skip ci]"
-          # 빌드가 pubspec.lock 등 추적 파일을 건드릴 수 있어 자동 stash 후 rebase
-          git pull --rebase --autostash origin develop
-          git push origin HEAD:develop

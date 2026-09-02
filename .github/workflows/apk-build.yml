@@ -1,0 +1,39 @@
+name: Build APK
+
+# Actions 탭 → 이 워크플로 → Run workflow 로만 실행. 결과는 Artifacts 에서 다운로드(저장소에 커밋하지 않음).
+on:
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: APK 가 호출할 백엔드 주소 (Caddy 경유)
+        default: http://localhost
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Build APK
+        working-directory: frontend
+        run: |
+          flutter pub get
+          [ -d android ] || flutter create . --platforms=android --org com.myrace
+          flutter build apk --release --dart-define=API_BASE_URL="${{ inputs.api_base_url }}"
+          cp build/app/outputs/flutter-apk/app-release.apk ../my_race.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: my_race-apk
+          path: my_race.apk
+          retention-days: 30
