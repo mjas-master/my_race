@@ -355,12 +355,8 @@
 2026-09-02T22:12:16.468+09:00  INFO 51298 --- [my_race] [           main] com.myrace.service.IngestService         : entries ingested meet=3 date=2026-09-09 races=0 entries=0 changed=0
 2026-09-02T22:12:16.468+09:00  INFO 51298 --- [my_race] [           main] com.myrace.service.IngestService         : entries ingested meet=2 date=2026-09-09 races=0 entries=0 changed=0
 2026-09-02T22:12:16.547+09:00  INFO 51298 --- [my_race] [           main] c.m.s.DevBootstrap$$SpringCGLIB$$0       : [mock seed] races=336 win=0.295 place=0.473 show=0.607
-ms report is available at: file:///Users/burn7/mjas/my_race/backend/build/reports/problems/problems-report.html
-
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':bootRun' (registered by plugin 'org.springframework.boot').
+2026-09-02T22:50:39.220+09:00  WARN 51298 --- [my_race] [l-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=27m10s642ms).
+Run' (registered by plugin 'org.springframework.boot').
 > Process 'command '/opt/homebrew/Cellar/openjdk@21/21.0.12.1/libexec/openjdk.jdk/Contents/Home/bin/java'' finished with non-zero exit value 137 (this value may indicate that the process was terminated with the SIGKILL signal, which is often caused by the system running out of memory)
 
 * Try:

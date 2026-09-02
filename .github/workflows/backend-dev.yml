@@ -20,7 +20,7 @@ concurrency:
 env:
   REGISTRY: ghcr.io
   BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/my-race-backend
-  DEPLOY_DIR: /home/ubuntu/my_race
+  DEPLOY_DIR: /opt/my_race
 
 jobs:
   test-backend:
@@ -95,6 +95,7 @@ jobs:
           MYRACE_ADMIN_KEY: ${{ secrets.MYRACE_ADMIN_KEY }}
           CORS_ORIGINS: ${{ vars.CORS_ORIGINS || 'http://localhost:*' }}
           WEB_PORT: ${{ vars.WEB_PORT || '3000' }}
+          BACKEND_HOST_PORT: ${{ vars.BACKEND_HOST_PORT || '8081' }}
           DDL_AUTO: ${{ vars.DDL_AUTO || 'validate' }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
@@ -104,7 +105,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          envs: BACKEND_IMAGE,POSTGRES_PASSWORD,KRA_SERVICE_KEY,MYRACE_ADMIN_KEY,CORS_ORIGINS,WEB_PORT,DDL_AUTO,GHCR_USERNAME,GHCR_PULL_TOKEN,DEPLOY_DIR
+          envs: BACKEND_IMAGE,POSTGRES_PASSWORD,KRA_SERVICE_KEY,MYRACE_ADMIN_KEY,CORS_ORIGINS,WEB_PORT,BACKEND_HOST_PORT,DDL_AUTO,GHCR_USERNAME,GHCR_PULL_TOKEN,DEPLOY_DIR
           script: |
             set -eu
             mkdir -p "${DEPLOY_DIR}"
@@ -123,6 +124,7 @@ jobs:
             MYRACE_ADMIN_KEY=${MYRACE_ADMIN_KEY}
             CORS_ORIGINS=${CORS_ORIGINS}
             WEB_PORT=${WEB_PORT}
+            BACKEND_HOST_PORT=${BACKEND_HOST_PORT}
             DDL_AUTO=${DDL_AUTO}
             ENV
 

@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DEPLOY_DIR: /home/ubuntu/my_race
+  DEPLOY_DIR: /opt/my_race
   # 웹은 Caddy 가 /v1/* 을 백엔드로 프록시하므로 같은 출처(빈값=상대경로). 다른 서버라면 vars.WEB_API_BASE_URL 지정
   WEB_API_BASE_URL: ${{ vars.WEB_API_BASE_URL || '' }}
   # APK 가 붙을 백엔드 주소 (예: http://서버IP:3000 — Caddy 를 통해 /v1 프록시)
@@ -130,5 +130,6 @@ jobs:
           git add -f my_race.apk
           if git diff --cached --quiet; then echo "APK unchanged"; exit 0; fi
           git commit -m "chore(apk): my_race.apk from ${GITHUB_SHA::7} [skip ci]"
-          git pull --rebase origin develop
+          # 빌드가 pubspec.lock 등 추적 파일을 건드릴 수 있어 자동 stash 후 rebase
+          git pull --rebase --autostash origin develop
           git push origin HEAD:develop
