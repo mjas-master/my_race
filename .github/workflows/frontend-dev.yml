@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DEPLOY_DIR: /opt/my_race
+  DEPLOY_DIR: /home/ubuntu/my_race
   # 웹은 Caddy 가 /v1/* 을 백엔드로 프록시하므로 같은 출처(빈값=상대경로). 다른 서버라면 vars.WEB_API_BASE_URL 지정
   WEB_API_BASE_URL: ${{ vars.WEB_API_BASE_URL || '' }}
 
