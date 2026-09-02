@@ -1,0 +1,55 @@
+# /opt/my_race/docker-compose.yml — 값은 같은 폴더의 .env 에서 읽음 (backend-dev.yml 이 생성)
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: myrace
+      POSTGRES_USER: myrace
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: Asia/Seoul
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myrace -d myrace"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: ${BACKEND_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://db:5432/myrace
+      DB_USER: myrace
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KRA_SERVICE_KEY: ${KRA_SERVICE_KEY:-}
+      MYRACE_ADMIN_KEY: ${MYRACE_ADMIN_KEY:-dev-admin}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:*}
+      # 첫 배포(빈 DB)만 update 로 스키마 생성 후 validate 로 되돌릴 것 (GitHub vars.DDL_AUTO)
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${DDL_AUTO:-validate}
+      MYRACE_BACKFILL_WEEKS: ${MYRACE_BACKFILL_WEEKS:-8}
+    ports:
+      - "127.0.0.1:8080:8080"     # 서버 내부(Caddy·점검용)만. 외부는 Caddy 를 통해서만 접근
+
+  frontend:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${WEB_PORT:-3000}:80"    # 같은 서버·다른 포트로 서비스. 도메인/HTTPS 를 쓰면 80:80,443:443 로 변경
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./html:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

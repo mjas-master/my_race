@@ -1,0 +1,131 @@
+name: Deploy Backend (dev)
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'backend/**'
+      - 'deploy/docker-compose.yml'
+      - '.github/workflows/backend-dev.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy-backend-develop
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/my-race-backend
+  DEPLOY_DIR: /opt/my_race
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - run: chmod +x gradlew && ./gradlew test --no-daemon
+
+  build-and-push:
+    needs: test-backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.BACKEND_IMAGE }}
+          tags: |
+            type=sha,format=long,prefix=sha-
+            type=raw,value=develop
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          # 서버 CPU 에 맞춰 줄이면 빌드가 빨라진다 (x86 서버: linux/amd64 만)
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload docker-compose.yml
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          source: deploy/docker-compose.yml
+          target: ${{ env.DEPLOY_DIR }}
+          strip_components: 1
+
+      - name: Pull & restart backend
+        uses: appleboy/ssh-action@v1
+        env:
+          BACKEND_IMAGE: ${{ env.BACKEND_IMAGE }}:sha-${{ github.sha }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          KRA_SERVICE_KEY: ${{ secrets.KRA_SERVICE_KEY }}
+          MYRACE_ADMIN_KEY: ${{ secrets.MYRACE_ADMIN_KEY }}
+          CORS_ORIGINS: ${{ vars.CORS_ORIGINS || 'http://localhost:*' }}
+          WEB_PORT: ${{ vars.WEB_PORT || '3000' }}
+          DDL_AUTO: ${{ vars.DDL_AUTO || 'validate' }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+          DEPLOY_DIR: ${{ env.DEPLOY_DIR }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          envs: BACKEND_IMAGE,POSTGRES_PASSWORD,KRA_SERVICE_KEY,MYRACE_ADMIN_KEY,CORS_ORIGINS,WEB_PORT,DDL_AUTO,GHCR_USERNAME,GHCR_PULL_TOKEN,DEPLOY_DIR
+          script: |
+            set -eu
+            mkdir -p "${DEPLOY_DIR}"
+            cd "${DEPLOY_DIR}"
+
+            if [ -n "${GHCR_PULL_TOKEN:-}" ]; then
+              echo "${GHCR_PULL_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+            fi
+
+            # compose 가 읽는 .env 를 매 배포마다 재생성 (프론트 배포에서도 같은 파일을 사용)
+            umask 077
+            cat > .env <<ENV
+            BACKEND_IMAGE=${BACKEND_IMAGE}
+            POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            KRA_SERVICE_KEY=${KRA_SERVICE_KEY}
+            MYRACE_ADMIN_KEY=${MYRACE_ADMIN_KEY}
+            CORS_ORIGINS=${CORS_ORIGINS}
+            WEB_PORT=${WEB_PORT}
+            DDL_AUTO=${DDL_AUTO}
+            ENV
+
+            docker compose pull backend
+            docker compose up -d --remove-orphans db backend
+            docker image prune -af --filter "until=24h"

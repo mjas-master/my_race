@@ -1,0 +1,75 @@
+spring:
+  application.name: my_race
+  datasource:
+    url: jdbc:h2:mem:myrace;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate.ddl-auto: update
+    open-in-view: false
+    properties.hibernate.format_sql: false
+  h2.console.enabled: true
+  cache:
+    type: caffeine
+    caffeine.spec: maximumSize=2000,expireAfterWrite=60s
+  jackson:
+    default-property-inclusion: non_null
+
+server.port: 8080
+
+myrace:
+  timezone: Asia/Seoul
+  cors:
+    # Flutter 웹 개발 시 프론트 포트가 매번 바뀌므로 localhost 전 포트 허용. 운영은 prod 프로파일에서 덮어씀
+    allowed-origins: http://localhost:*,http://127.0.0.1:*
+  kra:
+    base-url: https://apis.data.go.kr/B551015
+    service-key: ${KRA_SERVICE_KEY:}     # ← 공공데이터포털 "일반 인증키(Decoding)" 만 넣으면 실데이터로 전환
+    timeout-ms: 8000
+    page-size: 1000
+    # 포털 명세가 바뀌면 여기만 수정. 검증 상태는 HttpKraApiClient 주석 및 GET /v1/admin/kra/probe 참고
+    endpoints:
+      raceResult: /racedetailresult/getracedetailresult   # ✔ API227 경주별상세성적표 (필드 검증 완료)
+      racePlan:   /API72_2/racePlan_2                     # 경주계획표(15056499)
+      entrySheet: /API26_2/entrySheet_2                   # 출전표 — 없으면 raceResult 로 자동 대체
+      horse:      /API8_2/raceHorseInfo_2                 # 경주마 성적
+      jockey:     /API12_1/jockeyInfo_1                   # 기수 성적(15056591)
+      trainer:    /API19_1/trainerInfo_1                  # 조교사 성적
+  ingest:
+    mock: ${MYRACE_MOCK:auto}          # auto: 키 있으면 실API, 없으면 Mock / true / false
+    meets: [1, 3, 2]
+    backfill-weeks-on-start: ${MYRACE_BACKFILL_WEEKS:8}   # 실API 첫 기동 시 과거 N주 자동 적재(0=끔)
+  prediction:
+    engine: v1-rule
+    free-rank-limit: 3
+    weights:
+      recentForm: 0.30
+      distanceFit: 0.20
+      jockeyForm: 0.15
+      trainerForm: 0.10
+      weightChange: 0.10
+      restDays: 0.10
+      classMove: 0.05
+  flags:
+    ads-enabled: true
+  admin-key: ${MYRACE_ADMIN_KEY:dev-admin}
+
+springdoc:
+  swagger-ui.path: /swagger-ui.html
+
+---
+spring:
+  config.activate.on-profile: prod
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa.hibernate.ddl-auto: validate
+myrace:
+  ingest.mock: "false"
+  cors:
+    # 같은 서버·다른 포트로 프론트를 올릴 때 그 주소를 지정. 예) CORS_ORIGINS=http://myrace.example.com:3000
+    # nginx 로 프론트와 /v1/ 을 같은 출처로 묶으면 CORS 자체가 불필요해 이 값은 무시된다.
+    allowed-origins: ${CORS_ORIGINS:http://localhost:*}

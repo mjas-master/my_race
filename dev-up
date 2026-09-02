@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BACKEND_DIR="$PROJECT_DIR/backend"
+FRONTEND_DIR="$PROJECT_DIR/frontend"
+BACKEND_LOG="$BACKEND_DIR/build/dev-up.log"
+FLUTTER_DEVICE="${FLUTTER_DEVICE:-}"
+API_BASE_URL="${API_BASE_URL:-http://localhost:8080}"
+
+cleanup() {
+  if [[ -n "${BACKEND_PID:-}" ]] && kill -0 "$BACKEND_PID" 2>/dev/null; then
+    echo "Stopping backend (PID: $BACKEND_PID)..."
+    kill "$BACKEND_PID" 2>/dev/null || true
+    wait "$BACKEND_PID" 2>/dev/null || true
+  fi
+}
+
+trap cleanup EXIT INT TERM
+
+JDK21_HOME="/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
+if [[ -x "$JDK21_HOME/bin/java" ]]; then
+  export JAVA_HOME="$JDK21_HOME"
+  export PATH="$JAVA_HOME/bin:$PATH"
+elif [[ -z "${JAVA_HOME:-}" ]] || [[ ! -x "$JAVA_HOME/bin/java" ]]; then
+  echo "JDK 21을 찾을 수 없습니다. JAVA_HOME을 JDK 21 경로로 설정하세요." >&2
+  exit 1
+fi
+
+if ! command -v java >/dev/null 2>&1; then
+  echo "java 실행 파일을 찾을 수 없습니다." >&2
+  exit 1
+fi
+
+JAVA_VERSION_OUTPUT="$(java -version 2>&1 | head -n 1)"
+if [[ "$JAVA_VERSION_OUTPUT" != *'21.'* ]]; then
+  echo "JDK 21이 필요합니다: $JAVA_VERSION_OUTPUT" >&2
+  exit 1
+fi
+
+if ! command -v flutter >/dev/null 2>&1; then
+  echo "Flutter SDK를 찾을 수 없습니다." >&2
+  exit 1
+fi
+
+if [[ -x "$BACKEND_DIR/gradlew" ]]; then
+  GRADLE_COMMAND=("$BACKEND_DIR/gradlew")
+elif command -v gradle >/dev/null 2>&1; then
+  GRADLE_COMMAND=(gradle)
+else
+  echo "Gradle을 찾을 수 없습니다. backend/gradlew를 추가하거나 Gradle을 설치하세요." >&2
+  exit 1
+fi
+
+if [[ -z "$FLUTTER_DEVICE" ]]; then
+  if xcodebuild -version >/dev/null 2>&1; then
+    FLUTTER_DEVICE="macos"
+  else
+    FLUTTER_DEVICE="chrome"
+    echo "Xcode를 사용할 수 없어 Flutter 디버깅 대상으로 Chrome을 선택합니다."
+  fi
+fi
+
+if lsof -ti :8080 >/dev/null 2>&1; then
+  echo "포트 8080을 점유 중인 기존 프로세스를 정리합니다..."
+  kill -9 $(lsof -ti :8080) 2>/dev/null || true
+fi
+
+mkdir -p "$(dirname "$BACKEND_LOG")"
+echo "Starting backend at http://localhost:8080..."
+(cd "$BACKEND_DIR" && "${GRADLE_COMMAND[@]}" bootRun) >"$BACKEND_LOG" 2>&1 &
+BACKEND_PID=$!
+
+for _ in {1..60}; do
+  if ! kill -0 "$BACKEND_PID" 2>/dev/null; then
+    echo "Backend failed to start. Log: $BACKEND_LOG" >&2
+    exit 1
+  fi
+  if curl --fail --silent http://localhost:8080/actuator/health >/dev/null 2>&1; then
+    echo "Backend is ready. Swagger: http://localhost:8080/swagger-ui.html"
+    break
+  fi
+  sleep 1
+done
+
+if ! curl --fail --silent http://localhost:8080/actuator/health >/dev/null 2>&1; then
+  echo "Backend startup timed out. Log: $BACKEND_LOG" >&2
+  exit 1
+fi
+
+echo "Starting Flutter on '$FLUTTER_DEVICE'..."
+cd "$FRONTEND_DIR"
+flutter run -d "$FLUTTER_DEVICE" --dart-define="API_BASE_URL=$API_BASE_URL"

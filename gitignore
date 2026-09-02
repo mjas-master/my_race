@@ -1,0 +1,75 @@
+# ===== 공통 =====
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+!.env.example
+.idea/
+*.iml
+.vscode/
+!.vscode/settings.json
+*.swp
+
+# ===== backend (Kotlin / Gradle / Spring Boot) =====
+backend/.gradle/
+backend/build/
+backend/out/
+backend/.kotlin/
+backend/bin/
+backend/*.db
+backend/*.mv.db
+backend/*.trace.db
+!backend/gradle/wrapper/gradle-wrapper.jar
+
+# ===== frontend (Flutter) =====
+frontend/.dart_tool/
+frontend/.packages
+frontend/.pub-cache/
+frontend/.pub/
+frontend/build/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.metadata
+frontend/*.lock
+!frontend/pubspec.lock
+frontend/coverage/
+frontend/doc/api/
+
+# Android
+frontend/android/.gradle/
+frontend/android/local.properties
+frontend/android/key.properties
+frontend/android/app/.cxx/
+frontend/android/**/GeneratedPluginRegistrant.java
+frontend/android/.kotlin/
+*.jks
+*.keystore
+
+# iOS / macOS
+frontend/ios/Pods/
+frontend/ios/.symlinks/
+frontend/ios/Flutter/Flutter.framework
+frontend/ios/Flutter/Flutter.podspec
+frontend/ios/Flutter/ephemeral/
+frontend/ios/Flutter/Generated.xcconfig
+frontend/ios/Runner/GeneratedPluginRegistrant.*
+frontend/ios/**/xcuserdata/
+frontend/macos/Pods/
+frontend/macos/Flutter/ephemeral/
+frontend/macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Web / Linux / Windows
+frontend/linux/flutter/ephemeral/
+frontend/windows/flutter/ephemeral/
+
+# ===== 빌드 산출물 =====
+*.apk
+*.aab
+*.ipa
+# 단, 확인용으로 루트에 두는 APK 는 추적한다 (frontend-dev.yml build-apk 잡이 생성)
+!/my_race.apk
+
+# ===== 배포 서버 산출물 (로컬에 생기지 않지만 안전장치) =====
+deploy/html/
+deploy/.env

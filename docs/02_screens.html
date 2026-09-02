@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>my_race — 화면 구성안 (12 screens)</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1EC; --paper:#FFFFFF; --ink:#17251D; --ink-2:#4A5A51; --ink-3:#8A9690;
+  --turf:#2B6A47; --turf-2:#E3EFE7; --tan:#B98F5E; --tan-2:#F4ECDF; --red:#C0392B;
+  --line:#D9DFD9;
+  /* KRA 마번 안장색 */
+  --g1:#FFFFFF;--g2:#1B1B1B;--g3:#D42A2A;--g4:#2457C5;--g5:#F2C400;--g6:#2E8B57;--g7:#F07C1C;--g8:#F29BC0;--g9:#7A3EB1;--g10:#9A9A9A;--g11:#7ED957;--g12:#C51E7A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,sans-serif;font-feature-settings:"tnum";padding:32px 24px 80px}
+h1{font-size:22px;font-weight:900;letter-spacing:-.02em}
+.sub{color:var(--ink-2);margin:6px 0 28px;max-width:70ch;line-height:1.6;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:28px 24px}
+.shot{display:flex;flex-direction:column;gap:10px}
+.shot .cap{font-size:13px;color:var(--ink-2);line-height:1.5}
+.shot .cap b{color:var(--ink);font-weight:700;display:block;font-size:14px}
+.phone{width:300px;height:620px;background:var(--paper);border:1px solid var(--line);border-radius:28px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.status{height:26px;display:flex;justify-content:space-between;align-items:center;padding:0 18px;font-size:11px;color:var(--ink-3)}
+.bar{display:flex;align-items:center;gap:8px;padding:8px 16px 10px;border-bottom:1px solid var(--line)}
+.bar h2{font-size:17px;font-weight:700;letter-spacing:-.01em;flex:1}
+.bar .back{width:20px;color:var(--ink-2)}
+.bar .act{font-size:12px;color:var(--turf);font-weight:500}
+.body{flex:1;overflow:hidden;padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.tabs{display:flex;border-top:1px solid var(--line);padding:8px 6px 10px;justify-content:space-around;font-size:10px;color:var(--ink-3)}
+.tabs span{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tabs i{width:20px;height:20px;border-radius:6px;background:var(--line);display:block}
+.tabs .on{color:var(--turf);font-weight:700}.tabs .on i{background:var(--turf)}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.card{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.row{display:flex;align-items:center;gap:10px}
+.gate{width:22px;height:22px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:1px solid rgba(0,0,0,.15);flex-shrink:0}
+.gate.g1{background:var(--g1);color:#000}.gate.g2{background:var(--g2);color:#fff}.gate.g3{background:var(--g3);color:#fff}.gate.g4{background:var(--g4);color:#fff}.gate.g5{background:var(--g5);color:#000}.gate.g6{background:var(--g6);color:#fff}.gate.g7{background:var(--g7);color:#fff}.gate.g8{background:var(--g8);color:#000}.gate.g9{background:var(--g9);color:#fff}.gate.g10{background:var(--g10);color:#fff}
+.name{font-size:13px;font-weight:500;flex:1}
+.meta{font-size:11px;color:var(--ink-3)}
+.rank{font-size:15px;font-weight:900;width:20px;text-align:center}
+.rank.top{color:var(--red)}
+.score{font-size:12px;font-weight:700;color:var(--turf);min-width:34px;text-align:right}
+.big{font-size:32px;font-weight:900;letter-spacing:-.03em;line-height:1}
+.label{font-size:11px;color:var(--ink-3)}
+.btn{background:var(--turf);color:#fff;text-align:center;padding:12px;border-radius:12px;font-size:14px;font-weight:700}
+.btn.ghost{background:var(--paper);color:var(--ink-2);border:1px solid var(--line);font-weight:500}
+.lock{background:var(--tan-2);border:1px dashed var(--tan);border-radius:12px;padding:10px 12px;font-size:12px;color:#6E5330;display:flex;justify-content:space-between;align-items:center}
+.lock b{color:var(--tan)}
+.ad{background:#F3F4F2;border-top:1px solid var(--line);height:44px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink-3)}
+.bars{display:flex;align-items:flex-end;gap:4px;height:64px}
+.bars i{flex:1;background:var(--turf-2);border-radius:3px 3px 0 0;display:block}.bars i.hi{background:var(--turf)}
+.spark{height:44px;background:linear-gradient(to top,var(--turf-2),transparent);border-bottom:2px solid var(--turf);border-radius:2px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.kv div{background:#F7F9F6;border-radius:8px;padding:8px}
+.kv .v{font-size:15px;font-weight:700}
+.note{font-size:10px;color:var(--ink-3);line-height:1.5;border-top:1px solid var(--line);padding-top:8px;margin-top:auto}
+.li{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}
+.li:last-child{border-bottom:0}
+.toggle{width:34px;height:20px;border-radius:10px;background:var(--turf);position:relative}
+.toggle::after{content:"";position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:8px;background:#fff}
+.hero{background:var(--turf);color:#fff;border-radius:14px;padding:14px}
+.hero .big{color:#fff}.hero .label{color:#CFE3D7}
+.res{display:flex;align-items:center;gap:8px;font-size:12px}
+.res .pos{width:18px;font-weight:900}
+.hit{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--turf-2);color:var(--turf)}
+.miss{background:#F6E6E4;color:var(--red)}
+.field{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--ink-3)}
+.legend{display:flex;gap:16px;margin:20px 0 8px;font-size:12px;color:var(--ink-2);flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+</style>
+</head>
+<body>
+<h1>my_race 화면 구성안</h1>
+<p class="sub">12개 화면. 흐름: 온보딩(1→2) → 홈/경주 목록(3) → 경주 상세(4) → 경주마·기수·조교사(5·6·7) → 결과·적중(8·9) → 프리미엄·설정(10·11·12).
+마번 색은 KRA 안장색을 그대로 사용해 현장 예상지와 같은 시각 언어를 유지합니다. 무료 사용자는 1위 예측만 열려 있고 나머지는 잠금 카드로 보입니다.</p>
+
+<div class="legend">
+  <span><i class="gate g3">3</i> 마번(게이트색)</span>
+  <span><span class="rank top">1</span> 추천 1~3위 강조</span>
+  <span><span class="hit">적중</span><span class="hit miss">미적중</span> 결과 대비</span>
+  <span>🔒 프리미엄 잠금 카드</span>
+</div>
+
+<div class="grid">
+
+<!-- S01 -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="body" style="justify-content:center;gap:18px;padding:28px">
+    <div class="big" style="font-size:40px">my_race</div>
+    <p style="font-size:14px;color:var(--ink-2);line-height:1.6">이번 주 경주, 데이터로 미리 봅니다.<br>한국마사회 공공데이터 기반.</p>
+    <div class="card" style="background:#FAFBF9">
+      <p style="font-size:13px;line-height:1.7">이 앱은 <b>만 19세 이상</b>만 이용할 수 있습니다.<br>제공되는 예측은 참고 정보이며 결과를 보장하지 않습니다. 배팅 대행이나 판매를 하지 않습니다.</p>
+    </div>
+    <div class="row" style="font-size:13px"><span style="width:18px;height:18px;border:2px solid var(--turf);border-radius:4px;background:var(--turf)"></span>만 19세 이상이며 위 내용을 확인했습니다</div>
+    <div class="btn">시작하기</div>
+    <div class="label" style="text-align:center">이용약관 · 개인정보 처리방침</div>
+  </div>
+</div>
+<div class="cap"><b>S01 성인 확인 · 면책</b>첫 실행 1회. 체크 전에는 버튼 비활성. 확인 시각을 로컬 저장. 경마장 코드/데이터 출처 문구는 여기서 고정.</div>
+</div>
+
+<!-- S02 -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="body" style="padding:24px 20px;gap:14px">
+    <div class="big" style="font-size:24px;line-height:1.3">주로 보는 경마장을<br>골라주세요</div>
+    <p class="label">홈 화면 기본 필터로 쓰입니다. 나중에 바꿀 수 있어요.</p>
+    <div class="card row" style="border-color:var(--turf);background:var(--turf-2)"><span class="name">서울</span><span class="meta">금·토·일</span></div>
+    <div class="card row"><span class="name">부산경남</span><span class="meta">금·일</span></div>
+    <div class="card row"><span class="name">제주</span><span class="meta">금·토</span></div>
+    <div style="margin-top:8px" class="card row"><span class="name">경주 전 알림 받기</span><span class="toggle"></span></div>
+    <p class="label">출마표 확정, 추천 순위 갱신 시 알려드립니다.</p>
+    <div style="flex:1"></div>
+    <div class="btn">완료</div>
+  </div>
+</div>
+<div class="cap"><b>S02 초기 설정</b>경마장 선호 + 알림 동의. 모두 선택 가능. 스킵 가능(기본 서울).</div>
+</div>
+
+<!-- S03 -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="bar"><h2>이번 주 경주</h2><span class="act">9월 4일(금) ▾</span></div>
+  <div class="body">
+    <div class="chip-row"><span class="chip on">서울</span><span class="chip">부경</span><span class="chip">제주</span><span class="chip">전체</span></div>
+    <div class="chip-row"><span class="chip on">금 4</span><span class="chip">토 5</span><span class="chip">일 6</span></div>
+    <div class="card">
+      <div class="row"><span class="name">1경주 · 1200m · 국6등급</span><span class="meta">11:10</span></div>
+      <div class="row" style="margin-top:8px"><span class="label">추천 1위</span><span class="gate g5">5</span><span class="name">천년의빛</span><span class="score">82.4</span></div>
+      <div class="meta">12두 출전 · 출마표 확정</div>
+    </div>
+    <div class="card">
+      <div class="row"><span class="name">2경주 · 1400m · 국5등급</span><span class="meta">11:45</span></div>
+      <div class="row" style="margin-top:8px"><span class="label">추천 1위</span><span class="gate g2">2</span><span class="name">강남질주</span><span class="score">77.9</span></div>
+      <div class="meta">10두 출전 · 출마표 확정</div>
+    </div>
+    <div class="card" style="opacity:.6">
+      <div class="row"><span class="name">3경주 · 1000m · 혼2등급</span><span class="meta">12:20</span></div>
+      <div class="meta" style="margin-top:8px">출마표 대기 중 — 목요일 오후 확정</div>
+    </div>
+  </div>
+  <div class="ad">배너 광고 영역 320×50 (무료 사용자)</div>
+  <div class="tabs"><span class="on"><i></i>경주</span><span><i></i>결과</span><span><i></i>적중</span><span><i></i>설정</span></div>
+</div>
+<div class="cap"><b>S03 홈 · 경주 목록</b>경마장 × 날짜 2단 필터. 카드마다 추천 1위와 점수만 노출(무료도 볼 수 있음). 미확정 경주는 비활성.</div>
+</div>
+
+<!-- S04 -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="bar"><span class="back">‹</span><h2>서울 1경주</h2><span class="act">출마표</span></div>
+  <div class="body" style="gap:8px">
+    <div class="row"><span class="meta">9/4(금) 11:10 · 1200m · 모래 · 국6등급 · 12두</span></div>
+    <div class="row" style="border-bottom:1px solid var(--line);padding-bottom:6px"><span class="rank top">1</span><span class="gate g5">5</span><span class="name">천년의빛<br><span class="meta">문세영 · 김영관 · 55kg</span></span><span class="score">82.4</span></div>
+    <div class="row" style="border-bottom:1px solid var(--line);padding-bottom:6px"><span class="rank top">2</span><span class="gate g8">8</span><span class="name">라온더파이터<br><span class="meta">서승운 · 박대흥 · 54kg</span></span><span class="score">76.1</span></div>
+    <div class="row" style="border-bottom:1px solid var(--line);padding-bottom:6px"><span class="rank top">3</span><span class="gate g1">1</span><span class="name">글로벌히트<br><span class="meta">유현명 · 지용철 · 56kg</span></span><span class="score">71.8</span></div>
+    <div class="row" style="border-bottom:1px solid var(--line);padding-bottom:6px"><span class="rank">4</span><span class="gate g3">3</span><span class="name">새벽바람<br><span class="meta">김용근 · 최기홍 · 53kg</span></span><span class="score">64.0</span></div>
+    <div class="row"><span class="rank">5</span><span class="gate g10">10</span><span class="name">파워블레이드<br><span class="meta">임기원 · 김순근 · 55kg</span></span><span class="score">61.2</span></div>
+    <div class="lock"><span>4위 이하 순위와 근거 지표 보기</span><b>🔒 프리미엄</b></div>
+    <p class="note">예측은 최근 성적·기수·주로 적성 등을 점수화한 참고 정보이며 결과를 보장하지 않습니다.</p>
+  </div>
+  <div class="tabs"><span class="on"><i></i>경주</span><span><i></i>결과</span><span><i></i>적중</span><span><i></i>설정</span></div>
+</div>
+<div class="cap"><b>S04 경주 상세 · 추천 순위</b>순위/마번/마명/기수·조교사·부담중량/점수. 1~3위 붉은 순위. 행 탭 → S05. 상단 "출마표" 탭으로 원본 순서(마번순) 전환.</div>
+</div>
+
+<!-- S05 -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="bar"><span class="back">‹</span><h2>천년의빛</h2></div>
+  <div class="body">
+    <div class="row"><span class="gate g5">5</span><span class="meta">한국 · 4세 · 수 · 레이팅 48 · 21전 5승 4준</span></div>
+    <div class="card">
+      <div class="label">이번 경주 점수 근거</div>
+      <div class="kv" style="margin-top:6px">
+        <div><div class="label">최근 3전 평균순위</div><div class="v">2.3</div></div>
+        <div><div class="label">거리 적성 1200m</div><div class="v">4전 2승</div></div>
+        <div><div class="label">기수 궤적(문세영)</div><div class="v">3전 1승</div></div>
+        <div><div class="label">부담중량 변화</div><div class="v">−1kg</div></div>
+      </div>
+    </div>
+    <div class="label">최근 10전 착순</div>
+    <div class="bars"><i style="height:30%" class="hi"></i><i style="height:45%"></i><i style="height:20%" class="hi"></i><i style="height:80%"></i><i style="height:35%"></i><i style="height:20%" class="hi"></i><i style="height:60%"></i><i style="height:45%"></i><i style="height:25%" class="hi"></i><i style="height:35%"></i></div>
+    <div class="res"><span class="pos">1</span><span style="flex:1">8/22 서울 1200m · 문세영 · 1:14.2</span><span class="meta">1.8배</span></div>
+    <div class="res"><span class="pos">3</span><span style="flex:1">8/1 서울 1300m · 문세영 · 1:20.9</span><span class="meta">4.2배</span></div>
+    <div class="res"><span class="pos">2</span><span style="flex:1">7/11 서울 1200m · 김용근 · 1:14.8</span><span class="meta">2.6배</span></div>
+    <div class="lock"><span>전체 출전 기록과 배당 이력</span><b>🔒</b></div>
+  </div>
+</div>
+<div class="cap"><b>S05 경주마 상세</b>점수 근거 4칸(프리미엄은 6칸), 최근 10전 착순 막대(낮을수록 좋음), 경주 이력 리스트. 기수명 탭 → S06.</div>
+</div>
+
+<!-- S06 -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="bar"><span class="back">‹</span><h2>문세영 기수</h2></div>
+  <div class="body">
+    <div class="row"><span class="meta">서울 · 데뷔 2008 · 통산 1,9xx승</span></div>
+    <div class="kv">
+      <div><div class="label">올해 승률</div><div class="v">18.4%</div></div>
+      <div><div class="label">올해 복승률</div><div class="v">37.1%</div></div>
+      <div><div class="label">최근 30일 출전</div><div class="v">46회</div></div>
+      <div><div class="label">최근 30일 승</div><div class="v">9승</div></div>
+    </div>
+    <div class="label">주별 승률 추이(12주)</div>
+    <div class="spark"></div>
+    <div class="label">이번 주 출전</div>
+    <div class="res"><span class="gate g5">5</span><span style="flex:1">1경주 천년의빛</span><span class="score">추천 1위</span></div>
+    <div class="res"><span class="gate g4">4</span><span style="flex:1">4경주 모닝스타</span><span class="meta">추천 6위</span></div>
+    <div class="res"><span class="gate g7">7</span><span style="flex:1">7경주 블루오션</span><span class="meta">추천 3위</span></div>
+  </div>
+</div>
+<div class="cap"><b>S06 기수 상세</b>핵심 4지표 + 12주 추이 + 이번 주 출전 목록(경주 탭 → S04). 조교사 상세(S07)는 동일 레이아웃.</div>
+</div>
+
+<!-- S07 -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="bar"><span class="back">‹</span><h2>김영관 조교사</h2></div>
+  <div class="body">
+    <div class="row"><span class="meta">서울 · 관리마 42두</span></div>
+    <div class="kv">
+      <div><div class="label">올해 승률</div><div class="v">14.2%</div></div>
+      <div><div class="label">올해 복승률</div><div class="v">31.0%</div></div>
+      <div><div class="label">거리 1200m 승률</div><div class="v">16.8%</div></div>
+      <div><div class="label">자주 기용 기수</div><div class="v">문세영</div></div>
+    </div>
+    <div class="label">이번 주 출전마</div>
+    <div class="res"><span class="gate g5">5</span><span style="flex:1">1경주 천년의빛</span><span class="score">추천 1위</span></div>
+    <div class="res"><span class="gate g2">2</span><span style="flex:1">5경주 태양의질주</span><span class="meta">추천 4위</span></div>
+    <div class="lock"><span>기수별 조합 성적, 월별 추이</span><b>🔒</b></div>
+  </div>
+</div>
+<div class="cap"><b>S07 조교사 상세 (P1)</b>기수 상세와 컴포넌트 공유. 기수-조교사 조합 성적은 프리미엄.</div>
+</div>
+
+<!-- S08 -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="bar"><h2>경주 결과</h2><span class="act">8월 31일(일) ▾</span></div>
+  <div class="body">
+    <div class="chip-row"><span class="chip on">서울</span><span class="chip">부경</span><span class="chip">제주</span></div>
+    <div class="card">
+      <div class="row"><span class="name">1경주 · 1200m</span><span class="hit">1착 적중</span></div>
+      <div class="res" style="margin-top:6px"><span class="pos">1</span><span class="gate g5">5</span><span style="flex:1">천년의빛</span><span class="meta">1:14.0 · 단 2.1</span></div>
+      <div class="res"><span class="pos">2</span><span class="gate g1">1</span><span style="flex:1">글로벌히트</span><span class="meta">복 4.8</span></div>
+      <div class="res"><span class="pos">3</span><span class="gate g3">3</span><span style="flex:1">새벽바람</span><span class="meta">삼복 21.3</span></div>
+    </div>
+    <div class="card">
+      <div class="row"><span class="name">2경주 · 1400m</span><span class="hit miss">미적중</span></div>
+      <div class="res" style="margin-top:6px"><span class="pos">1</span><span class="gate g9">9</span><span style="flex:1">바람의언덕</span><span class="meta">1:28.4 · 단 12.5</span></div>
+      <div class="res"><span class="pos">2</span><span class="gate g2">2</span><span style="flex:1">강남질주</span><span class="meta">우리 예측 1위</span></div>
+      <div class="res"><span class="pos">3</span><span class="gate g6">6</span><span style="flex:1">하이랜드</span><span class="meta"></span></div>
+    </div>
+  </div>
+  <div class="tabs"><span><i></i>경주</span><span class="on"><i></i>결과</span><span><i></i>적중</span><span><i></i>설정</span></div>
+</div>
+<div class="cap"><b>S08 경주 결과</b>실제 1~3착 + 배당. 우리 예측과 대비해 적중/미적중 라벨. 카드 탭 → S04(결과 모드).</div>
+</div>
+
+<!-- S09 -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="bar"><h2>적중 이력</h2><span class="act">최근 4주 ▾</span></div>
+  <div class="body">
+    <div class="hero">
+      <div class="label">추천 1위 → 1착 적중률</div>
+      <div class="big">27.5%</div>
+      <div class="label" style="margin-top:6px">복승(1~2착 내) 48.2% · 삼복 61.0% · 총 131경주</div>
+    </div>
+    <div class="kv">
+      <div><div class="label">서울</div><div class="v">29.1%</div></div>
+      <div><div class="label">부경</div><div class="v">25.0%</div></div>
+      <div><div class="label">제주</div><div class="v">28.6%</div></div>
+      <div><div class="label">엔진</div><div class="v">v1-rule</div></div>
+    </div>
+    <div class="label">주별 1착 적중률</div>
+    <div class="bars"><i style="height:50%"></i><i style="height:62%" class="hi"></i><i style="height:40%"></i><i style="height:55%"></i></div>
+    <div class="lock"><span>경주별 상세 이력·등급별 적중률</span><b>🔒</b></div>
+    <p class="note">과거 적중률은 미래 결과를 보장하지 않습니다.</p>
+  </div>
+  <div class="tabs"><span><i></i>경주</span><span><i></i>결과</span><span class="on"><i></i>적중</span><span><i></i>설정</span></div>
+</div>
+<div class="cap"><b>S09 적중 이력</b>신뢰의 핵심 화면. 큰 숫자 하나(1착 적중률) + 보조 3지표 + 경마장별 + 주별 추이. 엔진 버전 표기로 투명성 확보.</div>
+</div>
+
+<!-- S10 -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="bar"><span class="back">✕</span><h2>프리미엄</h2></div>
+  <div class="body" style="gap:12px">
+    <div class="big" style="font-size:22px;line-height:1.35">전체 순위와 근거를<br>광고 없이 봅니다</div>
+    <div class="li"><span>1~12위 전체 추천 순위</span><span>✓</span></div>
+    <div class="li"><span>점수 근거 6개 지표·차트</span><span>✓</span></div>
+    <div class="li"><span>경주별 적중 이력 상세</span><span>✓</span></div>
+    <div class="li"><span>출마표 확정·순위 갱신 알림</span><span>✓</span></div>
+    <div class="li"><span>배너 광고 제거</span><span>✓</span></div>
+    <div class="card row" style="border-color:var(--turf);background:var(--turf-2)"><span class="name">월간</span><span class="score" style="font-size:15px">₩9,900</span></div>
+    <div class="card row"><span class="name">연간 <span class="meta">월 6,583원</span></span><span class="score" style="font-size:15px;color:var(--ink)">₩79,000</span></div>
+    <div class="btn">월간 구독 시작</div>
+    <div class="label" style="text-align:center;line-height:1.6">스토어 계정으로 결제·해지됩니다. 구독 복원</div>
+  </div>
+</div>
+<div class="cap"><b>S10 프리미엄 구독</b>잠금 카드 탭 시 모달. 두 플랜, 스토어 결제. 복원 링크 필수.</div>
+</div>
+
+<!-- S11 -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="bar"><h2>설정</h2></div>
+  <div class="body" style="gap:0">
+    <div class="card row" style="margin-bottom:10px;background:var(--tan-2);border-color:var(--tan)"><span class="name">무료 플랜</span><span class="act" style="color:var(--tan)">프리미엄 보기</span></div>
+    <div class="li"><span>기본 경마장</span><span class="meta">서울</span></div>
+    <div class="li"><span>출마표 확정 알림</span><span class="toggle"></span></div>
+    <div class="li"><span>추천 순위 갱신 알림</span><span class="toggle"></span></div>
+    <div class="li"><span>경주 30분 전 알림</span><span class="meta">꺼짐</span></div>
+    <div class="li"><span>구독 관리 · 복원</span><span class="meta">›</span></div>
+    <div class="li"><span>문의하기</span><span class="meta">›</span></div>
+    <div class="li"><span>이용약관 · 개인정보 처리방침</span><span class="meta">›</span></div>
+    <div class="li"><span>데이터 출처</span><span class="meta">공공데이터포털 ›</span></div>
+    <div class="li"><span>앱 버전</span><span class="meta">1.0.0 (12)</span></div>
+  </div>
+  <div class="tabs"><span><i></i>경주</span><span><i></i>결과</span><span><i></i>적중</span><span class="on"><i></i>설정</span></div>
+</div>
+<div class="cap"><b>S11 설정</b>플랜 상태 카드, 알림 3종, 구독/문의/약관/출처/버전.</div>
+</div>
+
+<!-- S12 -->
+<div class="shot">
+<div class="phone">
+  <div class="status"><span>9:41</span><span>●●●</span></div>
+  <div class="bar"><span class="back">‹</span><h2>데이터 출처와 면책</h2></div>
+  <div class="body" style="font-size:13px;line-height:1.75;color:var(--ink-2)">
+    <p><b style="color:var(--ink)">데이터 출처</b><br>경주 편성·출마표·결과·배당 정보는 공공데이터포털에 공개된 한국마사회 OpenAPI를 이용합니다. 본 앱은 한국마사회와 제휴·공인 관계가 없습니다.</p>
+    <p><b style="color:var(--ink)">예측 정보</b><br>추천 순위는 과거 기록을 통계적으로 점수화한 참고 정보입니다. 결과를 보장하지 않으며, 이용에 따른 손실에 대해 책임지지 않습니다.</p>
+    <p><b style="color:var(--ink)">이용 제한</b><br>만 19세 이상만 이용할 수 있습니다. 본 앱은 마권 구매·배팅 대행·사설 경마 정보를 제공하지 않습니다.</p>
+    <p><b style="color:var(--ink)">데이터 지연</b><br>공공데이터 갱신 시점에 따라 실제와 차이가 있을 수 있습니다. 화면의 갱신 시각을 확인하세요.</p>
+  </div>
+</div>
+<div class="cap"><b>S12 데이터 출처 · 면책</b>법적 필수 문구. 설정에서 진입. 금지 표현(공인/제휴/공식)은 절대 사용하지 않음.</div>
+</div>
+
+</div>
+</body>
+</html>
