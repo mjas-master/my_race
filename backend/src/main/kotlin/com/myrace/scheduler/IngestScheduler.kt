@@ -50,4 +50,18 @@ class IngestScheduler(
     fun personStatsJob() = safe("personStats") { props.ingest.meets.forEach { ingest.refreshPersonStats(it) } }
 
     private fun safe(name: String, block: () -> Unit) = try { block() } catch (e: Exception) { log.error("job {} failed: {}", name, e.message, e) }
+
+    /** 매일 11:50 최신 경주정보 통합 다운로드 및 처리 */
+    @Scheduled(cron = "0 50 11 * * *", zone = "Asia/Seoul")
+    fun dailySyncJob() = safe("dailySync") {
+        val d = today()
+        props.ingest.meets.forEach { meet ->
+            ingest.ingestPlan(meet, d, d.plusDays(13))
+            (0..6).map { d.plusDays(it.toLong()) }.forEach { date ->
+                ingest.ingestEntries(meet, date).changedRaceIds.forEach { pred.computeForRace(it) }
+            }
+            ingest.ingestResults(meet, d.minusDays(1)).forEach { hits.evaluateRace(it) }
+            ingest.ingestResults(meet, d).forEach { hits.evaluateRace(it) }
+        }
+    }
 }
