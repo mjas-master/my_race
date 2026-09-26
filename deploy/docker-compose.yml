@@ -37,7 +37,7 @@ services:
     # Caddy 는 도커 내부 네트워크(backend:8080)로 접근하므로 호스트 포트는 필수가 아니다.
     # 서버의 8080 은 다른 프로젝트가 쓰고 있어 8081 을 루프백에만 연다 (점검용, 필요 없으면 ports 블록 삭제).
     ports:
-      - "127.0.0.1:${BACKEND_HOST_PORT:-8081}:8080"
+      - "8080:8080"
 
   frontend:
     image: caddy:2-alpine
